@@ -12,6 +12,13 @@ class Game:
         self.screen_fill_color = SCREEN_FILL_COLOR
         self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
         self.game_font = pygame.font.Font(None, 30)
+
+        self.control_font = pygame.font.Font(None, 36)
+
+        self.left_button = pygame.Rect(20, 520, 80, 60)
+        self.right_button = pygame.Rect(120, 520, 80, 60)
+        self.fire_button = pygame.Rect(680, 520, 100, 60)
+
         self.game_score = 0
 
         self.fighter = Fighter()
@@ -32,6 +39,37 @@ class Game:
                     break
 
                 self.handle_key_events(event)
+
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    if event.button == 1:
+                        if self.left_button.collidepoint(event.pos):
+                            self.fighter.move_left()
+
+                        elif self.right_button.collidepoint(event.pos):
+                            self.fighter.move_right()
+
+                        elif self.fire_button.collidepoint(event.pos):
+                            self.ball.fire()
+
+                if event.type == pygame.MOUSEBUTTONUP:
+                    if event.button == 1:
+                        self.fighter.stop_moving()
+
+                if event.type == pygame.FINGERDOWN:
+                    touch_x = event.x * self.screen_width
+                    touch_y = event.y * self.screen_height
+
+                    if self.left_button.collidepoint(touch_x, touch_y):
+                        self.fighter.move_left()
+
+                    elif self.right_button.collidepoint(touch_x, touch_y):
+                        self.fighter.move_right()
+
+                    elif self.fire_button.collidepoint(touch_x, touch_y):
+                        self.ball.fire()
+
+                if event.type == pygame.FINGERUP:
+                    self.fighter.stop_moving()
 
             if not self.game_is_running:
                 break
@@ -79,6 +117,7 @@ class Game:
         if self.ball.was_fired:
             self.screen.blit(self.ball.image, (self.ball.x, self.ball.y))
         self.show_game_score()
+        self.draw_controls()
         pygame.display.update()
 
     def show_game_score(self):
@@ -97,3 +136,23 @@ class Game:
         pygame.display.update()
 
         await asyncio.sleep(5)
+
+    def draw_controls(self):
+        buttons = [
+            (self.left_button, "<"),
+            (self.right_button, ">"),
+            (self.fire_button, "FIRE")
+        ]
+
+        for rect, label in buttons:
+            pygame.draw.rect(
+                self.screen,
+                (60, 90, 120),
+                rect,
+                border_radius=12
+            )
+
+            text = self.control_font.render(label, True, "white")
+            text_rect = text.get_rect(center=rect.center)
+
+            self.screen.blit(text, text_rect)
